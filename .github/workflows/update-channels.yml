@@ -2,7 +2,7 @@ name: Update channel catalogue
 on:
   workflow_dispatch:
   schedule:
-    - cron: '23 4 * * *'
+    - cron: '0 */6 * * *'
 permissions:
   contents: write
 jobs:
