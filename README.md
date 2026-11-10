@@ -32,3 +32,7 @@
 > • 🪶 اپلیکیشن  با حجم فقط ۳.۳ مگابایت
 
 > • 📺 سازگار کامل با Android Tv
+
+نسخه وب
+
+  <a href="https://darknessshade.github.io/TV/"><b> نسخه وب ↗</b></a>
