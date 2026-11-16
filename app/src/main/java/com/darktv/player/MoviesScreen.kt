@@ -186,7 +186,7 @@ private fun MovieCard(
         onClick = onClick,
         shape = RoundedCornerShape(16.dp),
         color = palette.card,
-        modifier = Modifier.fillMaxWidth().animateItem()
+        modifier = Modifier.fillMaxWidth()
     ) {
         Row(Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
             // Poster
