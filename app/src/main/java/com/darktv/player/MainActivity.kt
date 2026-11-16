@@ -33,7 +33,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -420,7 +419,7 @@ fun TvApp(settings: AppearanceSettings, inPictureInPicture: Boolean, onEnterPict
                                 !active && daysLeft in 0..2 -> Color(0xFFFFB84D) // expiring very soon
                                 else -> Color(0xFF22C55E) // active or limited
                             }
-                            val subIcon = if (active) Icons.Default.CheckCircle else if (daysLeft < 0) Icons.Default.Warning else Icons.AutoMirrored.Filled.AccessTime
+                            val subIcon = if (active) Icons.Default.CheckCircle else if (daysLeft < 0) Icons.Default.Warning else Icons.Default.Timer
                             val subText = if (active) {
                                 if (daysLeft < 0) "♾️ $label"
                                 else "$label ⏱${daysLeft}" + (if(english) "d" else "روز")
