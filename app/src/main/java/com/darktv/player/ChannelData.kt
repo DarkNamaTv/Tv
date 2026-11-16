@@ -124,18 +124,30 @@ object ChannelRepository {
         Channel(25, "MB Persia", "ام‌بی‌سی پرشیا (MBC Persia)", "فیلم و سریال", "http://46.245.122.7/hls/mbpersia/stream.m3u8", "MBC", Color(0xFFD97706), Color(0xFF78350F)),
         Channel(26, "Ravi TV", "راوی تی‌وی (Ravi Documentary)", "سبک زندگی و کودک", "http://46.245.122.7/hls/ravitv/stream.m3u8", "RAVI", Color(0xFF059669), Color(0xFF064E3B)),
 
-        // ── Adult channels (real HLS streams) ────────────────
+        // ── Adult channels (21 real HLS streams) ────────────
         Channel(100, "PlayBoy TV", "پلی‌بوی (PlayBoy TV)", "بزرگسالان", "https://cdn.adultiptv.net/blonde.m3u8", "PBTV", Color(0xFFB8860B), Color(0xFF8B6914), categoryKeys = listOf("adult")),
         Channel(101, "Brazzers", "برازرز (Brazzers TV)", "بزرگسالان", "https://cdn.adultiptv.net/bigtits.m3u8", "BRZ", Color(0xFF8B0000), Color(0xFF5C0000), categoryKeys = listOf("adult")),
         Channel(102, "Hustler TV", "هاستلر (Hustler TV)", "بزرگسالان", "https://cdn.adultiptv.net/anal.m3u8", "HUS", Color(0xFF2F4F4F), Color(0xFF1A2F2F), categoryKeys = listOf("adult")),
         Channel(103, "Penthouse TV", "پنت‌هاوس (Penthouse TV)", "بزرگسالان", "https://cdn.adultiptv.net/bigass.m3u8", "PH", Color(0xFFFF69B4), Color(0xFFDB7093), categoryKeys = listOf("adult")),
         Channel(104, "Blue Hustler", "بلو هاستلر (Blue Hustler)", "بزرگسالان", "https://live.mycamtv.com/asian.m3u8", "BH", Color(0xFF1E90FF), Color(0xFF104E8B), categoryKeys = listOf("adult")),
         Channel(105, "Vivid TV", "ویوید (Vivid TV)", "بزرگسالان", "https://live.redtraffic.xyz/pov.m3u8", "VIV", Color(0xFFFF1493), Color(0xFFCC1177), categoryKeys = listOf("adult")),
-        Channel(106, "Reality Kings", "ریالیتی کینگز (Reality Kings TV)", "بزرگسالان", "https://live.redtraffic.xyz/fetish.m3u8", "RK", Color(0xFF4169E1), Color(0xFF27408B), categoryKeys = listOf("adult")),
+        Channel(106, "Reality Kings", "ریالیتی کینگز (Reality Kings)", "بزرگسالان", "https://live.redtraffic.xyz/fetish.m3u8", "RK", Color(0xFF4169E1), Color(0xFF27408B), categoryKeys = listOf("adult")),
         Channel(107, "Redlight", "ردلایت (Redlight HD)", "بزرگسالان", "https://live.redtraffic.xyz/blowjob.m3u8", "RL", Color(0xFFDC143C), Color(0xFF8B0000), categoryKeys = listOf("adult")),
-        Channel(108, "SCT", "اس‌سی‌تی (SCT / Television X)", "بزرگسالان", "https://live.mycamtv.com/defstream.m3u8", "SCT", Color(0xFF800080), Color(0xFF4B0082), categoryKeys = listOf("adult")),
+        Channel(108, "SCT / TVX", "اس‌سی‌تی (Television X)", "بزرگسالان", "https://live.mycamtv.com/defstream.m3u8", "SCT", Color(0xFF800080), Color(0xFF4B0082), categoryKeys = listOf("adult")),
         Channel(109, "Dorcel TV", "دورسل (Dorcel TV)", "بزرگسالان", "https://live.redtraffic.xyz/threesome.m3u8", "DOR", Color(0xFFFF4500), Color(0xFFCD3700), categoryKeys = listOf("adult")),
         Channel(110, "Private TV", "پرایوت (Private TV)", "بزرگسالان", "https://live.redtraffic.xyz/bigdick.m3u8", "PVT", Color(0xFF800000), Color(0xFF4A0000), categoryKeys = listOf("adult")),
+        Channel(111, "Brazzers Gay", "برازرز گی (Brazzers Gay)", "بزرگسالان", "https://cdn.adultiptv.net/gay.m3u8", "BGY", Color(0xFF006400), Color(0xFF003200), categoryKeys = listOf("adult")),
+        Channel(112, "Lesbian TV", "لسبین (Lesbian TV)", "بزرگسالان", "https://cdn.adultiptv.net/lesbian.m3u8", "LES", Color(0xFFDC143C), Color(0xFF8B0A50), categoryKeys = listOf("adult")),
+        Channel(113, "Hardcore TV", "هاردکور (Hardcore TV)", "بزرگسالان", "https://cdn.adultiptv.net/hardcore.m3u8", "HC", Color(0xFF8B0000), Color(0xFF4A0000), categoryKeys = listOf("adult")),
+        Channel(114, "Compilation", "کامپایلیشن (Compilation HD)", "بزرگسالان", "https://cdn.adultiptv.net/compilation.m3u8", "CMP", Color(0xFF4B0082), Color(0xFF2A0050), categoryKeys = listOf("adult")),
+        Channel(115, "Cuckold TV", "کاکلد (Cuckold TV)", "بزرگسالان", "https://cdn.adultiptv.net/cuckold.m3u8", "CUK", Color(0xFF8B6914), Color(0xFF5A4610), categoryKeys = listOf("adult")),
+        Channel(116, "Interracial", "اینترریشل (Interracial HD)", "بزرگسالان", "https://cdn.adultiptv.net/interracial.m3u8", "INT", Color(0xFF006400), Color(0xFF003200), categoryKeys = listOf("adult")),
+        Channel(117, "Latina TV", "لاتینا (Latina TV)", "بزرگسالان", "https://cdn.adultiptv.net/latina.m3u8", "LAT", Color(0xFFFF6347), Color(0xFFCD3700), categoryKeys = listOf("adult")),
+        Channel(118, "Fetish TV", "فتش (Fetish TV)", "بزرگسالان", "https://cdn.adultiptv.net/fetish.m3u8", "FET", Color(0xFF800080), Color(0xFF4B0082), categoryKeys = listOf("adult")),
+        Channel(119, "Gangbang TV", "گنگ‌بنگ (Gangbang TV)", "بزرگسالان", "https://cdn.adultiptv.net/gangbang.m3u8", "GB", Color(0xFF2F4F4F), Color(0xFF1A2F2F), categoryKeys = listOf("adult")),
+        Channel(120, "Brunette TV", "برونت (Brunette HD)", "بزرگسالان", "https://cdn.adultiptv.net/brunette.m3u8", "BRN", Color(0xFF8B4513), Color(0xFF5C2E0A), categoryKeys = listOf("adult")),
+        Channel(121, "Big Ass TV", "بیگ‌آس (Big Ass TV)", "بزرگسالان", "https://live.mycamtv.com/bigass.m3u8", "BAS", Color(0xFFFF1493), Color(0xFFCC1177), categoryKeys = listOf("adult")),
+        Channel(122, "MyCamTV Anal", "مای‌کم تی‌وی آنال (Anal)", "بزرگسالان", "https://live.mycamtv.com/anal.m3u8", "MCT", Color(0xFFFF69B4), Color(0xFFDB7093), categoryKeys = listOf("adult")),
         Channel(27, "Khatereh", "شبکه خاطره (Khatereh TV)", "موزیک", "http://46.245.122.7/hls/khatereh/stream.m3u8", "KHT", Color(0xFF9333EA), Color(0xFF581C87))
     )
 }

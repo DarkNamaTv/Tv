@@ -216,6 +216,7 @@ fun TvApp(settings: AppearanceSettings, inPictureInPicture: Boolean, onEnterPict
     var english by remember { mutableStateOf(prefs.getBoolean("english", false)) }
     var showSettings by remember { mutableStateOf(false) }
     var showMovies by remember { mutableStateOf(false) }
+    var showPinLock by remember { mutableStateOf(false) }
     var updateStatus by remember { mutableStateOf<UpdateStatus>(UpdateStatus.Checking) }
     var updateCheck by remember { mutableIntStateOf(0) }
     var acknowledgedVersion by remember { mutableStateOf(prefs.getString("acknowledged_update", null)) }
@@ -408,7 +409,9 @@ fun TvApp(settings: AppearanceSettings, inPictureInPicture: Boolean, onEnterPict
                         }
                         HomeIconButton(Icons.Default.Search, tr("جستجو", "Search"), palette.text) { searchActive = true }
                         HomeIconButton(Icons.Default.Settings, tr("تنظیمات", "Settings"), palette.text, Modifier.focusRequester(homeSettingsFocus)) { settingsReturnFocus = homeSettingsFocus; openUpdates = false; showSettings = true }
-                        HomeIconButton(Icons.Default.Movie, tr("فیلم", "Movies"), palette.text) { showMovies = true }
+                        HomeIconButton(Icons.Default.Movie, tr("فیلم", "Movies"), palette.text) {
+                            showPinLock = true
+                        }
                     }
                 }
                 AnimatedVisibility(visible = searchActive, enter = fadeIn(tween(250)), exit = fadeOut(tween(200))) {
@@ -538,6 +541,10 @@ fun TvApp(settings: AppearanceSettings, inPictureInPicture: Boolean, onEnterPict
         }
     }
     if (showMovies && !inPictureInPicture && panel == "home") MoviesScreen(english, onBack = { showMovies = false })
+    if (showPinLock) PinLock(english,
+        onSuccess = { showPinLock = false; showMovies = true },
+        onCancel = { showPinLock = false }
+    )
     if (showSettings && !inPictureInPicture) SettingsPopup(settings, english, isTv, updateStatus, updateUnread, openUpdates,
         onPictureInPicture = if (canUsePip && panel != "home") { { showSettings = false; panel = "player"; hudVisible = false; onEnterPictureInPicture() } } else null,
         onUpdateSeen = { acknowledgeUpdate() }, onCheckUpdate = { updateCheck++ }, onLanguage = {
