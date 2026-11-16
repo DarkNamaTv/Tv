@@ -33,6 +33,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.AccessTime
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -217,6 +218,7 @@ fun TvApp(settings: AppearanceSettings, inPictureInPicture: Boolean, onEnterPict
     var showSettings by remember { mutableStateOf(false) }
     var showMovies by remember { mutableStateOf(false) }
     var showPinLock by remember { mutableStateOf(false) }
+    var showSupport by remember { mutableStateOf(false) }
     var updateStatus by remember { mutableStateOf<UpdateStatus>(UpdateStatus.Checking) }
     var updateCheck by remember { mutableIntStateOf(0) }
     var acknowledgedVersion by remember { mutableStateOf(prefs.getString("acknowledged_update", null)) }
@@ -409,6 +411,25 @@ fun TvApp(settings: AppearanceSettings, inPictureInPicture: Boolean, onEnterPict
                         }
                         HomeIconButton(Icons.Default.Search, tr("جستجو", "Search"), palette.text) { searchActive = true }
                         HomeIconButton(Icons.Default.Settings, tr("تنظیمات", "Settings"), palette.text, Modifier.focusRequester(homeSettingsFocus)) { settingsReturnFocus = homeSettingsFocus; openUpdates = false; showSettings = true }
+                        if (SubscriptionLock.getSubscriptionCode(context).isNotEmpty()) {
+                            val (label, _) = SubscriptionLock.getDurationInfo(context, english)
+                            val daysLeft = SubscriptionLock.getRemainingDays(context)
+                            val active = SubscriptionLock.isAccessActive(context)
+                            val subColor = when {
+                                !active && daysLeft < 0 -> Color(0xFFFF6B6B)  // expired
+                                !active && daysLeft in 0..2 -> Color(0xFFFFB84D) // expiring very soon
+                                else -> Color(0xFF22C55E) // active or limited
+                            }
+                            val subIcon = if (active) Icons.Default.CheckCircle else if (daysLeft < 0) Icons.Default.Warning else Icons.Default.AccessTime
+                            val subText = if (active) {
+                                if (daysLeft < 0) "♾️ $label"
+                                else "$label ⏱${daysLeft}" + (if(english) "d" else "روز")
+                            } else {
+                                if (daysLeft < 0) "⚠️ $label"
+                                else "⏰ $daysLeft" + (if(english) "d" else "روز")
+                            }
+                            HomeIconButton(subIcon, subText, subColor) { showSupport = true }
+                        }
                         HomeIconButton(Icons.Default.Movie, tr("فیلم", "Movies"), palette.text) {
                             showPinLock = true
                         }
@@ -544,9 +565,47 @@ fun TvApp(settings: AppearanceSettings, inPictureInPicture: Boolean, onEnterPict
     }
     if (showMovies && !inPictureInPicture && panel == "home") MoviesScreen(english, onBack = { showMovies = false })
     if (showPinLock) PinLock(english,
-        onSuccess = { showPinLock = false; showMovies = true },
-        onCancel = { showPinLock = false }
+        showTextMode = true,
+        onSuccess = {
+            showPinLock = false
+            if (category == "adult") showMovies = true
+        },
+        onCancel = { showPinLock = false },
+        onSupportClick = { showSupport = true }
     )
+    if (showSupport) {
+        androidx.compose.ui.window.Dialog(onDismissRequest = { showSupport = false }) {
+            Card(shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
+                colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = androidx.compose.ui.graphics.Color(0xFF1A1A26))) {
+                Column(Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("📩", fontSize = 40.sp)
+                    Spacer(Modifier.height(12.dp))
+                    Text(if(english) "Contact Support" else "تماس با پشتیبانی",
+                        fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    Spacer(Modifier.height(8.dp))
+                    Text(if(english) "Send a message to get your activation PIN" else "برای دریافت رمز فعالسازی پیام دهید",
+                        fontSize = 13.sp, color = Color(0xFF9090A0), textAlign = TextAlign.Center)
+                    Spacer(Modifier.height(16.dp))
+                    Button(onClick = {
+                        try {
+                            val uri = android.net.Uri.parse("https://t.me/mohmdnini")
+                            context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, uri))
+                        } catch(_: Exception) {}
+                        showSupport = false
+                    }, modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF06B6D2)),
+                        shape = RoundedCornerShape(12.dp)) {
+                        Text("@mohmdnini  📱", fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                    }
+                    Spacer(Modifier.height(12.dp))
+                    TextButton(onClick = { showSupport = false }) {
+                        Text(if(english) "Cancel" else "انصراف", color = Color(0xFF9090A0))
+                    }
+                }
+            }
+        }
+    }
+
     if (showSettings && !inPictureInPicture) SettingsPopup(settings, english, isTv, updateStatus, updateUnread, openUpdates,
         onPictureInPicture = if (canUsePip && panel != "home") { { showSettings = false; panel = "player"; hudVisible = false; onEnterPictureInPicture() } } else null,
         onUpdateSeen = { acknowledgeUpdate() }, onCheckUpdate = { updateCheck++ }, onLanguage = {
