@@ -79,7 +79,7 @@ object SubscriptionLock {
         if (!DURATION_DAYS.containsKey(code)) return null
 
         val now = System.currentTimeMillis() / 1000
-        if (expiryTimestamp < now && DURATION_DAYS[code] != -1L) return ValidationResult.Expired
+        if (expiryTimestamp < now && DURATION_DAYS[code] != -1) return ValidationResult.Expired
 
         // Check revocation (if list URL is configured, fetch it)
         // For now: check local revocation marker
@@ -98,7 +98,7 @@ object SubscriptionLock {
         prefs.edit().apply {
             putString(KEY_SUBSCRIPTION_CODE, result.code)
             putLong(KEY_SUBSCRIPTION_EXPIRY, result.expiryTimestamp)
-            putInt(KEY_SUBSURATION_DURATION_DAYS, result.days)
+            putInt(KEY_SUBSCRIPTION_DURATION_DAYS, result.days)
             putBoolean(KEY_SUBSCRIPTION_UNLIMITED, result.days == -1)
             apply()
         }
@@ -166,7 +166,7 @@ object SubscriptionLock {
     fun getDurationInfo(ctx: Context, english: Boolean): Pair<String, String> {
         val code = getSubscriptionCode(ctx)
         val labels = if (english) DURATION_LABELS_EN else DURATION_LABELS_FA
-        val label = labels[code] ?: tr("نامشخص", "Unknown")
+        val label = labels[code] ?: (if (english) "Unknown" else "نامشخص")
         val expiry = getExpiryDate(ctx)
         return label to expiry
     }
