@@ -215,6 +215,7 @@ fun TvApp(settings: AppearanceSettings, inPictureInPicture: Boolean, onEnterPict
     val prefs = remember { context.getSharedPreferences("settings", 0) }
     var english by remember { mutableStateOf(prefs.getBoolean("english", false)) }
     var showSettings by remember { mutableStateOf(false) }
+    var showMovies by remember { mutableStateOf(false) }
     var updateStatus by remember { mutableStateOf<UpdateStatus>(UpdateStatus.Checking) }
     var updateCheck by remember { mutableIntStateOf(0) }
     var acknowledgedVersion by remember { mutableStateOf(prefs.getString("acknowledged_update", null)) }
@@ -396,9 +397,9 @@ fun TvApp(settings: AppearanceSettings, inPictureInPicture: Boolean, onEnterPict
             Column(Modifier.fillMaxSize().padding(horizontal = if (isTv) 24.dp else 12.dp, vertical = if (isTv) 16.dp else 10.dp)) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Image(painterResource(R.drawable.app_icon), contentDescription = "Dark TV", modifier = Modifier.size(42.dp))
+                        Image(painterResource(R.drawable.xicon), contentDescription = "Dark TV", modifier = Modifier.size(42.dp))
                         Spacer(Modifier.width(8.dp))
-                        Column { Text("DARK TV", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black, color = palette.text)
+                        Column { Text("XioTV", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black, color = palette.text)
                             Text(tr("تلویزیون زنده، همه‌جا", "LIVE TV, EVERYWHERE"), color = palette.muted, style = MaterialTheme.typography.labelSmall) }
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -407,6 +408,7 @@ fun TvApp(settings: AppearanceSettings, inPictureInPicture: Boolean, onEnterPict
                         }
                         HomeIconButton(Icons.Default.Search, tr("جستجو", "Search"), palette.text) { searchActive = true }
                         HomeIconButton(Icons.Default.Settings, tr("تنظیمات", "Settings"), palette.text, Modifier.focusRequester(homeSettingsFocus)) { settingsReturnFocus = homeSettingsFocus; openUpdates = false; showSettings = true }
+                        HomeIconButton(Icons.Default.Movie, tr("فیلم", "Movies"), palette.text) { showMovies = true }
                     }
                 }
                 AnimatedVisibility(visible = searchActive, enter = fadeIn(tween(250)), exit = fadeOut(tween(200))) {
@@ -535,6 +537,7 @@ fun TvApp(settings: AppearanceSettings, inPictureInPicture: Boolean, onEnterPict
             }
         }
     }
+    if (showMovies && !inPictureInPicture && panel == "home") MoviesScreen(english, onBack = { showMovies = false })
     if (showSettings && !inPictureInPicture) SettingsPopup(settings, english, isTv, updateStatus, updateUnread, openUpdates,
         onPictureInPicture = if (canUsePip && panel != "home") { { showSettings = false; panel = "player"; hudVisible = false; onEnterPictureInPicture() } } else null,
         onUpdateSeen = { acknowledgeUpdate() }, onCheckUpdate = { updateCheck++ }, onLanguage = {
