@@ -96,7 +96,7 @@ private fun categoryLabel(key: String, english: Boolean): String {
         "kids" to ("کودک" to "Kids"), "sports" to ("ورزشی" to "Sports"),
         "documentary" to ("مستند و فرهنگی" to "Documentary"),
         "lifestyle" to ("سبک زندگی" to "Lifestyle"), "religious" to ("مذهبی" to "Religious"),
-        "education" to ("آموزشی" to "Education"), "other" to ("سایر" to "Other")
+        "education" to ("آموزشی" to "Education"), "adult" to ("بزرگسالان" to "Adult"), "other" to ("سایر" to "Other")
     )
     val label = labels[key] ?: labels.getValue("other")
     return if (english) label.second else label.first
@@ -579,6 +579,8 @@ private fun categoryIcon(category: String): ImageVector = when (category) {
     "documentary" -> Icons.Default.Explore
     "lifestyle" -> Icons.Default.Favorite
     "religious" -> Icons.Default.AccountBalance
+    "adult" -> Icons.Default.ChildCare
+    "other" -> Icons.Default.MoreHoriz
     "education" -> Icons.Default.School
     else -> Icons.Default.MoreHoriz
 }
