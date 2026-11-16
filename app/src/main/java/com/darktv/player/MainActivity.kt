@@ -428,7 +428,9 @@ fun TvApp(settings: AppearanceSettings, inPictureInPicture: Boolean, onEnterPict
                 }
                 val filtered = if (category == "all") orderFavorites(matching, favorites) else matching
                 Row(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    CategoryRail(availableCategories, category, english, { category = it }, Modifier.fillMaxHeight())
+                    CategoryRail(availableCategories, category, english, { key ->
+                            if (key == "adult") showPinLock = true else category = key
+                        }, Modifier.fillMaxHeight())
                     Column(Modifier.weight(1f).fillMaxHeight()) {
                         Text(categoryLabel(category, english) + "  ·  ${filtered.size}", color = palette.text,
                             style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
