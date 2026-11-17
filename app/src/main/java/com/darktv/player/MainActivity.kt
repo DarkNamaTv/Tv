@@ -563,12 +563,17 @@ fun TvApp(settings: AppearanceSettings, inPictureInPicture: Boolean, onEnterPict
             }
         }
     }
-    if (showMovies && !inPictureInPicture && panel == "home") MoviesScreen(english, onBack = { showMovies = false })
+    if (showMovies && !inPictureInPicture) MoviesScreen(english, onBack = {
+        showMovies = false
+        category = "all"
+        panel = "home"
+    })
     if (showPinLock) PinLock(english,
         showTextMode = true,
         onSuccess = {
             showPinLock = false
-            if (category == "adult") showMovies = true
+            category = "adult"
+            panel = "home"
         },
         onCancel = { showPinLock = false },
         onSupportClick = { showSupport = true }
