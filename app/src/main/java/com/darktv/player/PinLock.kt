@@ -81,7 +81,7 @@ fun PinLock(
                     SubscriptionLock.activateSubscription(ctx,
                         SubscriptionLock.ValidationResult.Valid(SubscriptionLock.CODE_UNL, expiry, days))
                     onSuccess()
-                    return@PinLock
+                    return
                 }
                 // Also check simple PIN "1111" as default
                 if (input == "1111" || input == "0000") {
