@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 
-private val accent = Color(0xFF8B5CF6)
+private val accent = Color(0xFF06B6F2)
 
 internal data class AppPalette(
     val background: Color, val text: Color, val muted: Color,
@@ -102,9 +102,9 @@ internal fun AppTheme(inPictureInPicture: Boolean, onEnterPictureInPicture: () -
             LaunchedEffect(Unit) { delay(1400); opening = false }
             if (opening) {
                 Column(Modifier.fillMaxSize().background(materialPalette.background), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                    Image(painterResource(R.drawable.app_icon), contentDescription = "Dark TV", modifier = Modifier.size(140.dp))
+                    Image(painterResource(R.drawable.xicon), contentDescription = "XioTv", modifier = Modifier.size(140.dp))
                     Spacer(Modifier.height(14.dp))
-                    Text("Dark TV Live", color = materialPalette.text, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                    Text("XioTv Live", color = materialPalette.text, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                 }
             } else TvApp(settings, inPictureInPicture, onEnterPictureInPicture)
         }

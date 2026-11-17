@@ -1,0 +1,5 @@
+.gradle/
+dist/
+local.properties
+*.apk
+app/src/main/AndroidManifest.bak.xml

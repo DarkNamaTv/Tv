@@ -96,7 +96,7 @@ private fun categoryLabel(key: String, english: Boolean): String {
         "kids" to ("کودک" to "Kids"), "sports" to ("ورزشی" to "Sports"),
         "documentary" to ("مستند و فرهنگی" to "Documentary"),
         "lifestyle" to ("سبک زندگی" to "Lifestyle"), "religious" to ("مذهبی" to "Religious"),
-        "education" to ("آموزشی" to "Education"), "other" to ("سایر" to "Other")
+        "education" to ("آموزشی" to "Education"), "adult" to ("بزرگسالان" to "Adult"), "other" to ("سایر" to "Other")
     )
     val label = labels[key] ?: labels.getValue("other")
     return if (english) label.second else label.first
@@ -215,6 +215,10 @@ fun TvApp(settings: AppearanceSettings, inPictureInPicture: Boolean, onEnterPict
     val prefs = remember { context.getSharedPreferences("settings", 0) }
     var english by remember { mutableStateOf(prefs.getBoolean("english", false)) }
     var showSettings by remember { mutableStateOf(false) }
+    var showMovies by remember { mutableStateOf(false) }
+    var showPinLock by remember { mutableStateOf(false) }
+    var showSupport by remember { mutableStateOf(false) }
+    var showChangePin by remember { mutableStateOf(false) }
     var updateStatus by remember { mutableStateOf<UpdateStatus>(UpdateStatus.Checking) }
     var updateCheck by remember { mutableIntStateOf(0) }
     var acknowledgedVersion by remember { mutableStateOf(prefs.getString("acknowledged_update", null)) }
@@ -396,9 +400,9 @@ fun TvApp(settings: AppearanceSettings, inPictureInPicture: Boolean, onEnterPict
             Column(Modifier.fillMaxSize().padding(horizontal = if (isTv) 24.dp else 12.dp, vertical = if (isTv) 16.dp else 10.dp)) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Image(painterResource(R.drawable.app_icon), contentDescription = "Dark TV", modifier = Modifier.size(42.dp))
+                        Image(painterResource(R.drawable.xicon), contentDescription = "Dark TV", modifier = Modifier.size(42.dp))
                         Spacer(Modifier.width(8.dp))
-                        Column { Text("DARK TV", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black, color = palette.text)
+                        Column { Text("XioTV", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black, color = palette.text)
                             Text(tr("تلویزیون زنده، همه‌جا", "LIVE TV, EVERYWHERE"), color = palette.muted, style = MaterialTheme.typography.labelSmall) }
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -407,6 +411,28 @@ fun TvApp(settings: AppearanceSettings, inPictureInPicture: Boolean, onEnterPict
                         }
                         HomeIconButton(Icons.Default.Search, tr("جستجو", "Search"), palette.text) { searchActive = true }
                         HomeIconButton(Icons.Default.Settings, tr("تنظیمات", "Settings"), palette.text, Modifier.focusRequester(homeSettingsFocus)) { settingsReturnFocus = homeSettingsFocus; openUpdates = false; showSettings = true }
+                        if (SubscriptionLock.getSubscriptionCode(context).isNotEmpty()) {
+                            val (label, _) = SubscriptionLock.getDurationInfo(context, english)
+                            val daysLeft = SubscriptionLock.getRemainingDays(context)
+                            val active = SubscriptionLock.isAccessActive(context)
+                            val subColor = when {
+                                !active && daysLeft < 0 -> Color(0xFFFF6B6B)
+                                !active && daysLeft in 0..2 -> Color(0xFFFFB84D)
+                                else -> Color(0xFF22C55E)
+                            }
+                            val subIcon = if (active) Icons.Default.CheckCircle else if (daysLeft < 0) Icons.Default.Warning else Icons.Default.Timer
+                            val subText = if (active) {
+                                if (daysLeft < 0) "♾️ $label"
+                                else "$label ⏱${daysLeft}" + (if(english) "d" else "روز")
+                            } else {
+                                if (daysLeft < 0) "⚠️ $label"
+                                else "⏰ $daysLeft" + (if(english) "d" else "روز")
+                            }
+                            HomeIconButton(subIcon, subText, subColor) { showChangePin = true }
+                        }
+                        HomeIconButton(Icons.Default.Movie, tr("فیلم", "Movies"), palette.text) {
+                            showPinLock = true
+                        }
                     }
                 }
                 AnimatedVisibility(visible = searchActive, enter = fadeIn(tween(250)), exit = fadeOut(tween(200))) {
@@ -423,7 +449,9 @@ fun TvApp(settings: AppearanceSettings, inPictureInPicture: Boolean, onEnterPict
                 }
                 val filtered = if (category == "all") orderFavorites(matching, favorites) else matching
                 Row(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    CategoryRail(availableCategories, category, english, { category = it }, Modifier.fillMaxHeight())
+                    CategoryRail(availableCategories, category, english, { key ->
+                            if (key == "adult") showPinLock = true else category = key
+                        }, Modifier.fillMaxHeight())
                     Column(Modifier.weight(1f).fillMaxHeight()) {
                         Text(categoryLabel(category, english) + "  ·  ${filtered.size}", color = palette.text,
                             style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
@@ -535,6 +563,66 @@ fun TvApp(settings: AppearanceSettings, inPictureInPicture: Boolean, onEnterPict
             }
         }
     }
+    if (showMovies && !inPictureInPicture) MoviesScreen(english, onBack = {
+        showMovies = false
+        category = "all"
+        panel = "home"
+    })
+    if (showPinLock) PinLock(english,
+        showTextMode = true,
+        onSuccess = {
+            showPinLock = false
+            category = "adult"
+            panel = "home"
+        },
+        onCancel = { showPinLock = false },
+        onSupportClick = { showSupport = true }
+    )
+    if (showSupport) {
+        androidx.compose.ui.window.Dialog(onDismissRequest = { showSupport = false }) {
+            Card(shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
+                colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = androidx.compose.ui.graphics.Color(0xFF1A1A26))) {
+                Column(Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("📩", fontSize = 40.sp)
+                    Spacer(Modifier.height(12.dp))
+                    Text(if(english) "Contact Support" else "تماس با پشتیبانی",
+                        fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    Spacer(Modifier.height(8.dp))
+                    Text(if(english) "Send a message to get your activation PIN" else "برای دریافت رمز فعالسازی پیام دهید",
+                        fontSize = 13.sp, color = Color(0xFF9090A0), textAlign = TextAlign.Center)
+                    Spacer(Modifier.height(16.dp))
+                    Button(onClick = {
+                        try {
+                            val uri = android.net.Uri.parse("https://t.me/mohmdnini")
+                            context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, uri))
+                        } catch(_: Exception) {}
+                        showSupport = false
+                    }, modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF06B6D2)),
+                        shape = RoundedCornerShape(12.dp)) {
+                        Text("@mohmdnini  📱", fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                    }
+                    Spacer(Modifier.height(12.dp))
+                    TextButton(onClick = { showSupport = false }) {
+                        Text(if(english) "Cancel" else "انصراف", color = Color(0xFF9090A0))
+                    }
+                }
+            }
+}
+    }
+
+    if (showChangePin) {
+        ChangePinDialog(english,
+            onChanged = { newPin ->
+                // Manual PIN was saved in PinLock.kt's ChangePinDialog; just confirm
+                android.widget.Toast.makeText(context,
+                    if(english) "PIN changed successfully!" else "رمز با موفقیت تغییر کرد!",
+                    android.widget.Toast.LENGTH_SHORT).show()
+            },
+            onCancel = { showChangePin = false }
+        )
+    }
+
     if (showSettings && !inPictureInPicture) SettingsPopup(settings, english, isTv, updateStatus, updateUnread, openUpdates,
         onPictureInPicture = if (canUsePip && panel != "home") { { showSettings = false; panel = "player"; hudVisible = false; onEnterPictureInPicture() } } else null,
         onUpdateSeen = { acknowledgeUpdate() }, onCheckUpdate = { updateCheck++ }, onLanguage = {
@@ -542,6 +630,7 @@ fun TvApp(settings: AppearanceSettings, inPictureInPicture: Boolean, onEnterPict
         prefs.edit().putBoolean("english", it).apply()
     }, onClose = { showSettings = false })
 }
+
 
 @Composable
 private fun PlayerControlButton(icon: ImageVector, label: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
@@ -576,6 +665,8 @@ private fun categoryIcon(category: String): ImageVector = when (category) {
     "documentary" -> Icons.Default.Explore
     "lifestyle" -> Icons.Default.Favorite
     "religious" -> Icons.Default.AccountBalance
+    "adult" -> Icons.Default.ChildCare
+    "other" -> Icons.Default.MoreHoriz
     "education" -> Icons.Default.School
     else -> Icons.Default.MoreHoriz
 }
