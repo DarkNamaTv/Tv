@@ -72,6 +72,17 @@ fun PinLock(
                 if (mode == PinMode.NUMERIC) pin = "" else textPin = ""
             }
             null -> {
+                // Check user-set manual PIN first
+                val manual = ctx.getSharedPreferences("pin_prefs", android.content.Context.MODE_PRIVATE)
+                    .getString("manual_pin", "")
+                if (input == manual && manual.isNotBlank()) {
+                    val days = -1
+                    val expiry = Long.MAX_VALUE / 1000
+                    SubscriptionLock.activateSubscription(ctx,
+                        SubscriptionLock.ValidationResult.Valid(SubscriptionLock.CODE_UNL, expiry, days))
+                    onSuccess()
+                    return@PinLock
+                }
                 // Also check simple PIN "1111" as default
                 if (input == "1111" || input == "0000") {
                     // Default PIN: activate unlimited for testing
@@ -251,6 +262,157 @@ fun PinLock(
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth()
                     )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ChangePinDialog(
+    english: Boolean,
+    onChanged: (String) -> Unit,
+    onCancel: () -> Unit
+) {
+    var oldPin by remember { mutableStateOf("") }
+    var newPin by remember { mutableStateOf("") }
+    var confirmPin by remember { mutableStateOf("") }
+    var step by remember { mutableIntStateOf(0) } // 0=old, 1=new, 2=confirm
+    var error by remember { mutableStateOf("") }
+    var pinVisible by remember { mutableStateOf(false) }
+    val ctx = LocalContext.current
+
+    fun tr(fa: String, en: String) = if (english) en else fa
+
+    fun advance(new: String) {
+        error = ""
+        if (new.length < 4) {
+            error = tr("رمز باید حداقل ۴ کاراکتر باشد", "PIN must be at least 4 characters")
+            return
+        }
+        when (step) {
+            0 -> { oldPin = new; step = 1 }
+            1 -> { newPin = new; step = 2 }
+            2 -> {
+                if (new != newPin) {
+                    error = tr("تأیید رمز مطابقت ندارد", "PINs do not match")
+                    confirmPin = ""
+                } else {
+                    // Save as simple PIN (just plaintext for now)
+                    ctx.getSharedPreferences("pin_prefs", android.content.Context.MODE_PRIVATE)
+                        .edit().putString("manual_pin", newPin).apply()
+                    onChanged(newPin)
+                    onCancel()
+                }
+            }
+        }
+    }
+
+    Dialog(onDismissRequest = onCancel, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+        Box(Modifier.fillMaxSize().background(Color(0xDD000000)), contentAlignment = Alignment.Center) {
+            Card(
+                modifier = Modifier.fillMaxWidth().padding(20.dp),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF1A1A26))
+            ) {
+                Column(
+                    Modifier.verticalScroll(rememberScrollState()).padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text("🔑", fontSize = 36.sp)
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        when (step) {
+                            0 -> tr("رمز فعلی", "Current PIN")
+                            1 -> tr("رمز جدید", "New PIN")
+                            else -> tr("تأیید رمز جدید", "Confirm New PIN")
+                        },
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        tr("رمز جدید باید حداقل ۴ کاراکتر باشد", "New PIN must be at least 4 characters"),
+                        fontSize = 12.sp, color = Color(0xFF9090A0), textAlign = TextAlign.Center
+                    )
+                    Spacer(Modifier.height(16.dp))
+
+                    val currentPin = when (step) { 0 -> oldPin; 1 -> newPin; else -> confirmPin }
+
+                    Text(
+                        if (pinVisible) currentPin else "●".repeat(currentPin.length.coerceAtMost(16)),
+                        fontSize = 28.sp, letterSpacing = 8.sp, fontWeight = FontWeight.Bold,
+                        color = Color(0xFFE5C100)
+                    )
+                    if (error.isNotEmpty()) {
+                        Spacer(Modifier.height(4.dp))
+                        Text(error, fontSize = 11.sp, color = Color(0xFFFF6B6B))
+                    }
+
+                    Spacer(Modifier.height(12.dp))
+
+                    // Number pad
+                    val digits = listOf(
+                        listOf("1","2","3"),
+                        listOf("4","5","6"),
+                        listOf("7","8","9"),
+                        listOf("👁","0","⌫")
+                    )
+                    digits.forEach { row ->
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            row.forEach { key ->
+                                Button(
+                                    onClick = {
+                                        val cur = when (step) {
+                                            0 -> oldPin; 1 -> newPin; else -> confirmPin
+                                        }
+                                        var updated = cur
+                                        when (key) {
+                                            "👁" -> pinVisible = !pinVisible
+                                            "⌫" -> {
+                                                updated = when (step) {
+                                                    0 -> if (oldPin.isNotEmpty()) oldPin.dropLast(1).also { oldPin = it } else oldPin
+                                                    1 -> if (newPin.isNotEmpty()) newPin.dropLast(1).also { newPin = it } else newPin
+                                                    else -> if (confirmPin.isNotEmpty()) confirmPin.dropLast(1).also { confirmPin = it } else confirmPin
+                                                }
+                                                error = ""
+                                                return@Button
+                                            }
+                                            else -> {
+                                                updated = cur + key
+                                                when (step) {
+                                                    0 -> oldPin = updated
+                                                    1 -> newPin = updated
+                                                    else -> confirmPin = updated
+                                                }
+                                            }
+                                        }
+                                        if (updated.length >= 4) advance(updated)
+                                    },
+                                    modifier = Modifier.weight(1f).height(52.dp),
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF252535), contentColor = Color.White),
+                                    shape = RoundedCornerShape(12.dp)
+                                ) { Text(key, fontSize = 18.sp, fontWeight = FontWeight.Bold) }
+                            }
+                        }
+                        Spacer(Modifier.height(8.dp))
+                    }
+
+                    if (step > 0) {
+                        TextButton(onClick = {
+                            error = ""
+                            step--
+                            when (step) {
+                                0 -> { newPin = ""; confirmPin = "" }
+                                1 -> confirmPin = ""
+                            }
+                        }) { Text(tr("→ بازگشت", "← Back"), color = Color(0xFF9090A0)) }
+                    }
+
+                    TextButton(onClick = onCancel) {
+                        Text(tr("انصراف", "Cancel"), color = Color(0xFF9090A0))
+                    }
                 }
             }
         }

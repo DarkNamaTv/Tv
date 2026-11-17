@@ -218,6 +218,7 @@ fun TvApp(settings: AppearanceSettings, inPictureInPicture: Boolean, onEnterPict
     var showMovies by remember { mutableStateOf(false) }
     var showPinLock by remember { mutableStateOf(false) }
     var showSupport by remember { mutableStateOf(false) }
+    var showChangePin by remember { mutableStateOf(false) }
     var updateStatus by remember { mutableStateOf<UpdateStatus>(UpdateStatus.Checking) }
     var updateCheck by remember { mutableIntStateOf(0) }
     var acknowledgedVersion by remember { mutableStateOf(prefs.getString("acknowledged_update", null)) }
@@ -415,9 +416,9 @@ fun TvApp(settings: AppearanceSettings, inPictureInPicture: Boolean, onEnterPict
                             val daysLeft = SubscriptionLock.getRemainingDays(context)
                             val active = SubscriptionLock.isAccessActive(context)
                             val subColor = when {
-                                !active && daysLeft < 0 -> Color(0xFFFF6B6B)  // expired
-                                !active && daysLeft in 0..2 -> Color(0xFFFFB84D) // expiring very soon
-                                else -> Color(0xFF22C55E) // active or limited
+                                !active && daysLeft < 0 -> Color(0xFFFF6B6B)
+                                !active && daysLeft in 0..2 -> Color(0xFFFFB84D)
+                                else -> Color(0xFF22C55E)
                             }
                             val subIcon = if (active) Icons.Default.CheckCircle else if (daysLeft < 0) Icons.Default.Warning else Icons.Default.Timer
                             val subText = if (active) {
@@ -427,7 +428,7 @@ fun TvApp(settings: AppearanceSettings, inPictureInPicture: Boolean, onEnterPict
                                 if (daysLeft < 0) "⚠️ $label"
                                 else "⏰ $daysLeft" + (if(english) "d" else "روز")
                             }
-                            HomeIconButton(subIcon, subText, subColor) { showSupport = true }
+                            HomeIconButton(subIcon, subText, subColor) { showChangePin = true }
                         }
                         HomeIconButton(Icons.Default.Movie, tr("فیلم", "Movies"), palette.text) {
                             showPinLock = true
@@ -603,6 +604,68 @@ fun TvApp(settings: AppearanceSettings, inPictureInPicture: Boolean, onEnterPict
                 }
             }
         }
+    }
+
+
+        androidx.compose.ui.window.Dialog(onDismissRequest = { showChangePin = false }) {
+            Card(shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF1A1A26))) {
+                Column(Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("🔑", fontSize = 40.sp)
+                    Spacer(Modifier.height(12.dp))
+                    Text(if(english) "Subscription Settings" else "تنظیمات اشتراک",
+                        fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    Spacer(Modifier.height(16.dp))
+
+                    val (lbl, exp) = SubscriptionLock.getDurationInfo(context, english)
+                    val daysLeft = SubscriptionLock.getRemainingDays(context)
+                    val active = SubscriptionLock.isAccessActive(context)
+
+                    Surface(shape = RoundedCornerShape(12.dp), color = Color(0xFF2A2A38)) {
+                        Column(Modifier.padding(16.dp)) {
+                            Row { Text(if(english) "Plan:" else "طرح:", fontSize = 13.sp, color = Color(0xFF9090A0)); Spacer(Modifier.width(8.dp)); Text(lbl, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color(0xFFE5C100)) }
+                            Spacer(Modifier.height(6.dp))
+                            Row { Text(if(english) "Status:" else "وضعیت:", fontSize = 13.sp, color = Color(0xFF9090A0)); Spacer(Modifier.width(8.dp)); Text(if(active) (if(english) "Active ✅" else "فعال ✅") else (if(english) "Expired ❌" else "منقضی ❌"), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = if(active) Color(0xFF22C55E) else Color(0xFFFF6B6B)) }
+                            if (daysLeft >= 0) { Spacer(Modifier.height(6.dp)); Row { Text(if(english) "Remaining:" else "باقیمانده:", fontSize = 13.sp, color = Color(0xFF9090A0)); Spacer(Modifier.width(8.dp)); Text(daysLeft.toString() + (if(english) " days" else " روز"), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White) } }
+                            if (!active && exp != "∞") { Spacer(Modifier.height(6.dp)); Row { Text(if(english) "Expired on:" else "منقضی شده:", fontSize = 13.sp, color = Color(0xFF9090A0)); Spacer(Modifier.width(8.dp)); Text(exp, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color(0xFFFF6B6B)) } }
+                        }
+                    }
+
+                    Spacer(Modifier.height(16.dp))
+
+                    Button(onClick = { showChangePin = false; showSupport = true },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF06B6D2)),
+                        shape = RoundedCornerShape(12.dp)) {
+                        Text("📩 " + (if(english) "Contact Support" else "پشتیبانی"), fontSize = 14.sp)
+                    }
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedButton(onClick = { showChangePin = false; showPinLock = false },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFE5C100)),
+                        border = ButtonDefaults.outlinedButtonBorder) {
+                        Text("🔑 " + (if(english) "Change PIN" else "تغییر رمز"), fontSize = 14.sp)
+                    }
+                    Spacer(Modifier.height(8.dp))
+                    TextButton(onClick = { showChangePin = false }) {
+                        Text(if(english) "Close" else "بستن", color = Color(0xFF9090A0))
+                    }
+                }
+            }
+        }
+    }
+
+    if (showChangePin) {
+
+        ChangePinDialog(english,
+            onChanged = { newPin ->
+                // Manual PIN was saved in PinLock.kt's ChangePinDialog; just confirm
+                android.widget.Toast.makeText(context,
+                    if(english) "PIN changed successfully!" else "رمز با موفقیت تغییر کرد!",
+                    android.widget.Toast.LENGTH_SHORT).show()
+            },
+            onCancel = { showChangePin = false }
+        )
     }
 
     if (showSettings && !inPictureInPicture) SettingsPopup(settings, english, isTv, updateStatus, updateUnread, openUpdates,
